@@ -4,4 +4,4 @@ http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]); if (p === "/") p = "/index.html";
   const f = path.join(root, p);
   fs.readFile(f, (err, data) => { if (err) { res.writeHead(404); res.end("not found"); return; } res.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream", "cache-control": "no-store" }); res.end(data); });
-}).listen(8765, () => console.log("listening 8765"));
+}).listen(Number(process.env.PORT) || 8765, function () { console.log("listening " + this.address().port); });
