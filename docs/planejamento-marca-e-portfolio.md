@@ -71,7 +71,7 @@ Os pesos orientam o conjunto editorial; não determinam altura ou quantidade de 
 
 Ana: verificação direta em 13/10/2026 retornou HTTP 200 e o navegador exibiu conteúdo sem autenticação. O README e a validação local do projeto ainda dizem “não publicado”; esse registro histórico não descreve a disponibilidade pública observada hoje. A disponibilidade não confirma aprovação editorial da Ana nem resultado comercial. O preview deriva de `research/screenshots/desktop-hero.jpg`, captura local histórica, convertida para WebP; não é apresentada como captura nova da produção. O projeto Ana não será alterado. Usar Vercel até ser fornecido domínio definitivo.
 
-**Silomé:** incluída em 13/10/2026 com o endereço https://silome-teste.vercel.app (HTTP 200 verificado), como segundo destaque após Locus. Preview capturado do próprio site publicado (`assets/projects/silome-preview.webp` e `silome-preview-mobile.webp`). Trocar o endereço quando houver domínio definitivo. **“O Pai”:** nome/identidade e endereço ainda não identificados; aguardar as mesmas informações. Nenhum deles vira cartão público nesta etapa; não bloqueiam a remodelagem.
+**Silomé:** incluída em 13/10/2026 com o endereço https://silome-teste.vercel.app (HTTP 200 verificado); em 15/10/2026 o endereço passou a ser https://silome.vercel.app, como segundo destaque após Locus. Preview capturado do próprio site publicado (`assets/projects/silome-preview.webp` e `silome-preview-mobile.webp`). Trocar o endereço quando houver domínio definitivo. **“O Pai”:** nome/identidade e endereço ainda não identificados; aguardar as mesmas informações. Nenhum deles vira cartão público nesta etapa; não bloqueiam a remodelagem.
 
 ## 7. Estrutura e copy de página
 
