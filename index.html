@@ -12,6 +12,20 @@
   <meta property="og:description" data-i18n-content="meta.ogDescription" content="Sites, landing pages e produtos digitais. Conheça os projetos e converse sobre a sua próxima ideia.">
   <meta property="og:site_name" content="Miguel Mojena">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111416'/%3E%3Cpath fill='%23f2f4ef' d='M0 0h24l26 28L76 0h24v100H76V38L50 66 24 38v62H0z'/%3E%3Cpath fill='%23111416' d='M0 0h10l90 90v10H90L0 10z'/%3E%3Crect x='80' y='80' width='20' height='20' fill='%23b8ff2c'/%3E%3C/svg%3E">
+  <script>
+    // Build mode only runs with motion allowed and if the visitor did not skip it this session.
+    // Search and link-preview crawlers get the finished page.
+    // Fail-safe: if assets/build-mode.js does not take over in 4 s, the page shows as usual.
+    (function (d) {
+      if (/googlebot|google-inspectiontool|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp|facebookexternalhit|linkedinbot|twitterbot|gptbot|claudebot|perplexitybot/i.test(navigator.userAgent)) return;
+      try {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches || sessionStorage.getItem('mm-build') === 'off') return;
+      } catch (error) { /* storage blocked: keep going */ }
+      d.classList.add('mm-build');
+      setTimeout(function () { if (!d.classList.contains('mm-build-ready')) d.classList.remove('mm-build'); }, 4000);
+    })(document.documentElement);
+  </script>
+  <script src="assets/build-mode.js?v=2" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
@@ -209,6 +223,67 @@
       .hero__foot { align-items: flex-start; }
       .brand__role { display: none; }
     }
+    /* Build mode (assets/build-mode.js): agents assemble each block on scroll. */
+    .mm-build:not(.mm-build-ready) main .wrap, .mm-build:not(.mm-build-ready) .footer .wrap { visibility: hidden; }
+    .mm-build .hero__photo { animation: none; }
+    .mmb-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 9; pointer-events: none; overflow: hidden; contain: layout paint style; }
+    .mmb-layer > div { position: absolute; top: 0; left: 0; }
+    .mmb-agent { color: var(--c); will-change: transform, opacity; opacity: 0; }
+    .mmb-agent svg { position: absolute; overflow: visible; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); }
+    .mmb-arrow { left: -1.5px; top: -1.5px; transform-origin: 1.5px 1.5px; transition: transform .12s ease-out; }
+    .mmb-ibeam { left: -6px; top: -11px; display: none; }
+    .mmb-agent.is-text .mmb-arrow { display: none; }
+    .mmb-agent.is-text .mmb-ibeam { display: block; }
+    .mmb-agent.is-press .mmb-arrow { transform: scale(.78); }
+    .mmb-tag { position: absolute; left: 14px; top: 19px; padding: 2px 7px 3px; border-radius: 2px 9px 9px 9px; background: var(--c); color: var(--ink); font: 500 11px/1.25 var(--body); letter-spacing: .01em; white-space: nowrap; box-shadow: 0 0 0 1px rgba(17, 20, 22, .35), 0 4px 12px rgba(0, 0, 0, .3); }
+    .mmb-sel { border: 1px solid var(--c); }
+    .mmb-sel i { position: absolute; width: 7px; height: 7px; background: var(--paper); border: 1px solid var(--c); }
+    .mmb-sel i:nth-child(1) { left: -4px; top: -4px; }
+    .mmb-sel i:nth-child(2) { right: -4px; top: -4px; }
+    .mmb-sel i:nth-child(3) { left: -4px; bottom: -4px; }
+    .mmb-sel i:nth-child(4) { right: -4px; bottom: -4px; }
+    .mmb-badge { padding: 3px 5px; border-radius: 2px; background: var(--c); color: var(--ink); font: 600 10px/1 var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mmb-guide { background: #ff3d7f; opacity: 0; }
+    .mmb-caret { width: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+    .mmb-ph { border: 1px solid rgba(242, 244, 239, .2); background: linear-gradient(to top right, transparent calc(50% - .6px), rgba(242, 244, 239, .16) 50%, transparent calc(50% + .6px)), linear-gradient(to bottom right, transparent calc(50% - .6px), rgba(242, 244, 239, .16) 50%, transparent calc(50% + .6px)), rgba(242, 244, 239, .035); overflow: hidden; }
+    .mmb-ph span { position: absolute; left: 10px; top: 8px; color: var(--muted); font: 500 11px/1.2 var(--body); white-space: nowrap; }
+    .mmb-scan { height: 2px; background: var(--c); box-shadow: 0 0 14px 3px var(--c); }
+    .mmb-rule { height: 1px; background: var(--c); }
+    .mmb-rule::after { content: ""; position: absolute; right: -4px; top: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+    .mmb-ripple { width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 2px solid var(--c); border-radius: 50%; animation: mmb-ripple .55s ease-out forwards; }
+    @keyframes mmb-ripple { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+    .mmb-fill { position: relative; background-color: var(--ink) !important; }
+    .mmb-fill::before { content: ""; position: absolute; inset: 0; background: var(--mmb-fill); clip-path: circle(var(--mmb-r, 0px) at var(--mmb-x, 0px) var(--mmb-y, 0px)); pointer-events: none; }
+    .mmb-fill > .wrap { position: relative; }
+    .mmb-nomark::before { visibility: hidden; }
+    .mmb-hud { position: fixed; left: 50%; bottom: 18px; z-index: 11; display: flex; align-items: center; gap: 14px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: rgba(17, 20, 22, .9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(0, 0, 0, .4); color: var(--muted); font: 500 12px/1 var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; opacity: 0; visibility: hidden; transform: translate(-50%, 16px); transition: opacity .35s ease, transform .35s ease, visibility .35s; }
+    .mmb-hud.is-on { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .mmb-hud.is-idle { opacity: .72; }
+    .mmb-hud.is-idle:hover, .mmb-hud.is-idle:focus-within { opacity: 1; }
+    .mmb-hud.is-idle .mmb-hud__busy { display: none; }
+    .mmb-hud b { color: var(--paper); font-weight: 600; }
+    .mmb-hud__dots { display: flex; }
+    .mmb-hud__dots i { width: 11px; height: 11px; margin-left: -4px; border: 2px solid var(--ink); border-radius: 50%; background: var(--c); }
+    .mmb-hud__dots i:first-child { margin-left: 0; }
+    .mmb-hud__bar { width: 64px; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+    .mmb-hud__bar i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .25s ease-out; }
+    .mmb-hud button { min-height: 32px; padding: 6px 13px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--paper); font-size: 12px; }
+    .mmb-hud button:hover { border-color: var(--paper); }
+    .mmb-hud__ready { display: none; color: var(--accent); font-weight: 600; }
+    .mmb-hud.is-ready { border-color: rgba(184, 255, 44, .5); }
+    .mmb-hud.is-ready .mmb-hud__busy { display: none; }
+    .mmb-hud.is-ready .mmb-hud__ready { display: inline; }
+    .mmb-hud.is-ready .mmb-hud__dots i { animation: mmb-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; animation-delay: calc(var(--i) * 70ms); }
+    @keyframes mmb-pop { 50% { transform: scale(1.55); } }
+    .mmb-me { position: fixed; top: 0; left: 0; z-index: 12; pointer-events: none; opacity: 0; transition: opacity .25s ease; will-change: transform; }
+    .mmb-me.is-on { opacity: 1; }
+    @media (max-width: 767px) {
+      .mmb-tag { font-size: 10px; padding: 2px 6px; }
+      .mmb-hud { bottom: 12px; gap: 9px; padding-left: 11px; font-size: 11px; }
+      .mmb-hud__bar { display: none; }
+      .mmb-hud.is-idle { opacity: 0; visibility: hidden; transform: translate(-50%, 16px); }
+    }
+    @media print { .mmb-layer, .mmb-hud, .mmb-me { display: none !important; } }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation: none !important; transition: none !important; }
