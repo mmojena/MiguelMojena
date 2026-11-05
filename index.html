@@ -13,19 +13,17 @@
   <meta property="og:site_name" content="Miguel Mojena">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111416'/%3E%3Cpath fill='%23f2f4ef' d='M0 0h24l26 28L76 0h24v100H76V38L50 66 24 38v62H0z'/%3E%3Cpath fill='%23111416' d='M0 0h10l90 90v10H90L0 10z'/%3E%3Crect x='80' y='80' width='20' height='20' fill='%23b8ff2c'/%3E%3C/svg%3E">
   <script>
-    // Build mode only runs with motion allowed and if the visitor did not skip it this session.
+    // Build mode runs on every load when motion is allowed ("Pular" only skips the current visit).
     // Search and link-preview crawlers get the finished page.
     // Fail-safe: if assets/build-mode.js does not take over in 4 s, the page shows as usual.
     (function (d) {
       if (/googlebot|google-inspectiontool|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp|facebookexternalhit|linkedinbot|twitterbot|gptbot|claudebot|perplexitybot/i.test(navigator.userAgent)) return;
-      try {
-        if (matchMedia('(prefers-reduced-motion: reduce)').matches || sessionStorage.getItem('mm-build') === 'off') return;
-      } catch (error) { /* storage blocked: keep going */ }
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       d.classList.add('mm-build');
       setTimeout(function () { if (!d.classList.contains('mm-build-ready')) d.classList.remove('mm-build'); }, 4000);
     })(document.documentElement);
   </script>
-  <script src="assets/build-mode.js?v=2" defer></script>
+  <script src="assets/build-mode.js?v=3" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
@@ -227,7 +225,8 @@
     .mm-build:not(.mm-build-ready) main .wrap, .mm-build:not(.mm-build-ready) .footer .wrap { visibility: hidden; }
     .mm-build .hero__photo { animation: none; }
     .mmb-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 9; pointer-events: none; overflow: hidden; contain: layout paint style; }
-    .mmb-layer > div { position: absolute; top: 0; left: 0; }
+    .mmb-layer div { position: absolute; top: 0; left: 0; }
+    .mmb-task { transform-origin: 0 0; }
     .mmb-agent { color: var(--c); will-change: transform, opacity; opacity: 0; }
     .mmb-agent svg { position: absolute; overflow: visible; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); }
     .mmb-arrow { left: -1.5px; top: -1.5px; transform-origin: 1.5px 1.5px; transition: transform .12s ease-out; }
@@ -284,6 +283,28 @@
       .mmb-hud.is-idle { opacity: 0; visibility: hidden; transform: translate(-50%, 16px); }
     }
     @media print { .mmb-layer, .mmb-hud, .mmb-me { display: none !important; } }
+    /* Scroll depth: the page as artboards on a dotted canvas. A section is
+       pushed back into the canvas as it leaves, project captures pan inside
+       their frames, hero layers part at different depths and the contact board
+       comes forward. Scroll-driven, transform/opacity only (compositor), and
+       off without support or with reduced motion. */
+    @supports (animation-timeline: view()) {
+      @media screen and (prefers-reduced-motion: no-preference) {
+        body { background-image: radial-gradient(circle, rgba(242, 244, 239, .09) 1px, transparent 1.6px); background-size: 26px 26px; }
+        .hero, .offer, .about, .process, .footer { background-color: var(--ink); }
+        .hero, .work, .offer, .about, .process { transform-origin: 50% 100%; animation: mm-recede linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+        .hero { view-timeline: --mm-hero block; }
+        .hero__word { animation: mm-far linear both; animation-timeline: --mm-hero; animation-range: exit 0% exit 100%; }
+        .hero__shape { animation: mm-mid linear both; animation-timeline: --mm-hero; animation-range: exit 0% exit 100%; }
+        .project__preview img { animation: mm-pan linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+        .contact { transform-origin: 50% 0; animation: mm-arrive linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+      }
+    }
+    @keyframes mm-recede { to { transform: perspective(1600px) rotateX(6deg) scale(.92); opacity: .38; } }
+    @keyframes mm-far { to { translate: 0 150px; opacity: .25; } }
+    @keyframes mm-mid { to { translate: 0 60px; } }
+    @keyframes mm-pan { from { scale: 1.16; translate: 0 -4%; } to { scale: 1.09; translate: 0 4%; } }
+    @keyframes mm-arrive { from { transform: perspective(1600px) rotateX(-7deg) scale(.9); } }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation: none !important; transition: none !important; }

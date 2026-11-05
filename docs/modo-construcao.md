@@ -12,6 +12,8 @@ Revisão independente (subagente sem contexto) aprovada sem achados de seguranç
 - boot sem proteção contra exceção;
 - `innerHTML` no nome do arquivo do placeholder.
 
+**Atualização 05/11/2026, branch `feat/rolagem-3d`:** pedido do Miguel após ver em produção. "Pular" deixa de desligar a animação para as próximas aberturas: vale só para a visita atual, e toda abertura ou recarga constrói de novo. Entra a profundidade 3D na rolagem (seção abaixo). Merge e deploy aguardam a aprovação do Miguel.
+
 ## Referência e ideia
 
 Reel de referência (@matheusgomes, 02/11/2026): monitor com uma página em branco onde cerca de 30 cursores coloridos, no estilo multiplayer do Figma, desenham caixas com selo de medida, digitam o texto, trocam placeholders cinza por imagens e puxam guias rosa de alinhamento. Uma barra inferior mostra "33 agents · 188 / 737 layers".
@@ -28,20 +30,32 @@ Adaptação para o portfólio: um esquadrão de cursores-agente (Miguel, Estrat�
   - `shape`: escala a partir do canto;
   - `rule`: borda puxada com selo de largura;
   - `fill`: balde de tinta no fundo das seções Projetos e Contato.
-- Overlay absoluto (`.mmb-layer`, `aria-hidden`) abaixo do cabeçalho fixo. HUD com contagem real de camadas, "Rever" (refaz o que está na tela) e "Pular" (conclui tudo e desliga na sessão; o foco de teclado passa ao primeiro link visível). Quando a última camada é montada, o HUD mostra "✓ Página pronta" por 2,6 s.
+- Overlay absoluto (`.mmb-layer`, `aria-hidden`) abaixo do cabeçalho fixo. HUD com contagem real de camadas, "Rever" (refaz o que está na tela) e "Pular" (conclui tudo nesta visita; o HUD continua com "Rever" e o foco de teclado passa para ele). Nada é gravado no navegador: toda abertura ou recarga constrói de novo. Quando a última camada é montada, o HUD mostra "✓ Página pronta" por 2,6 s.
+- Cada tarefa guarda a caixa do elemento no início ("âncora") e, a cada quadro, mapeia a âncora sobre a caixa atual (translação + escala) num contêiner `.mmb-task`. Assim seleção, cursor de digitação, placeholder e o agente acompanham o elemento enquanto a profundidade 3D o move. As medidas de linha ficam em pixels CSS do elemento (a escala dos ancestrais é descontada), então o recorte do texto continua exato.
 - Visitante no time: com mouse (`hover: hover` e `pointer: fine`), uma etiqueta "Você" acompanha o cursor real enquanto os agentes trabalham. O cursor do sistema não é substituído; em toque a etiqueta não aparece.
-- Bootstrap no `<head>` adiciona `.mm-build` só com movimento permitido, se o visitante não pulou na sessão e se o user agent não é de robô de busca ou de prévia de link (Googlebot, Bingbot, LinkedIn, X etc.). Se o script não assumir em 4 s, a página aparece normalmente. O script tem versão na URL (`?v=2`) por causa do cache de 10 min do GitHub Pages.
+- Bootstrap no `<head>` adiciona `.mm-build` só com movimento permitido e se o user agent não é de robô de busca ou de prévia de link (Googlebot, Bingbot, LinkedIn, X etc.). Se o script não assumir em 4 s, a página aparece normalmente. O script tem versão na URL (`?v=3`) por causa do cache de 10 min do GitHub Pages.
+
+## Profundidade na rolagem (pranchetas num canvas)
+
+CSS puro em `index.html`, com animações ligadas à rolagem (`animation-timeline: view()`), só `transform` e `opacity` (rodam no compositor, presas ao dedo ou ao mouse). Independente do modo construção: continua ativa depois de "Pular". Desligada sem suporte do navegador (`@supports`) e com movimento reduzido.
+
+- Recuo: hero, Projetos, Oferta, Sobre e Processo, enquanto saem por cima (`exit 0%` → `exit 100%`), inclinam para trás e encolhem a partir da borda de baixo (`perspective(1600px) rotateX(6deg) scale(.92)`) e escurecem até 38%.
+- Canvas: fundo de pontos sutil no `body` (26 px), visível só nas laterais quando uma seção recua; as seções ganham fundo sólido igual ao de antes.
+- Hero em camadas: "Mojena." fica 150 px para trás e esmaece; o painel atrás do retrato, 60 px. Usa a propriedade `translate`, que se soma ao `transform` usado pelos agentes no painel.
+- Capturas dos projetos: zoom e deslocamento lento dentro da moldura enquanto atravessam a tela (`scale` 1,16 → 1,09; `translate` −4% → 4%).
+- Contato: chega de trás (`rotateX(-7deg) scale(.9)` → normal) enquanto entra.
+- Sem rolagem com inércia artificial (tipo Lenis): a rolagem nativa do aparelho foi mantida de propósito, sem sequestro de rolagem.
 
 ## Garantias
 
 - O texto nunca sai do DOM: só é recortado visualmente. SEO, leitor de tela e i18n (PT/EN/ES) continuam lendo o conteúdo.
-- Sem JavaScript ou com `prefers-reduced-motion: reduce`: página idêntica à anterior, sem overlay.
+- Sem JavaScript ou com `prefers-reduced-motion: reduce`: página idêntica à anterior, sem overlay. Movimento reduzido também desliga a profundidade 3D.
 - Blocos que o leitor já passou são concluídos sem animação. Foco por teclado, troca de idioma, redimensionamento, impressão e Esc concluem o que está em andamento.
-- Estado final idêntico à página sem animação: estilos computados de todos os elementos comparados. Única diferença: o `clip-path` do retrato, que na referência vem da animação CSS original terminada (`inset(0%)`, visualmente igual).
+- Estado final idêntico à página sem animação: estilos computados de todos os elementos comparados (referência = mesma página com `build-mode.js` bloqueado). Diferenças: o `clip-path` do retrato, que na referência vem da animação CSS original terminada (`inset(0%)`, visualmente igual), e a quarta casa decimal da transformação 3D da seção Processo, por fração de pixel na posição final de rolagem.
 
 ## Validação executada (local, http://127.0.0.1:8790)
 
-Scripts de QA e vídeos de demonstração mantidos fora do repositório, em `~/worktrees/miguelmojena-agentes-demo/` (`qa.mjs`, `wk.mjs`, `focus.mjs`, `perf.mjs`, `demo-desktop.mp4`, `demo-mobile.mp4`).
+Scripts de QA e vídeos de demonstração mantidos fora do repositório, em `~/worktrees/miguelmojena-agentes-demo/` (`qa.mjs`, `extra.mjs`, `regress.mjs`, `track.mjs`, `fx.mjs`, `wk.mjs`, `focus.mjs`, `perf.mjs`, `demo-*.mp4`, `demo3d-*.mp4`).
 
 | Verificação | Resultado |
 | --- | --- |
@@ -52,17 +66,20 @@ Scripts de QA e vídeos de demonstração mantidos fora do repositório, em `~/w
 | `prefers-reduced-motion: reduce` | sem `.mm-build`, sem overlay |
 | JavaScript desligado | conteúdo visível |
 | Troca de idioma no meio da construção | etiquetas e HUD traduzidos; nada preso |
-| Rever / Pular / recarregar após pular | refaz o hero; pular zera os recortes e desliga na sessão |
+| Rever / Pular / recarregar após pular | refaz o hero; pular conclui 89/89 sem gravar nada no navegador; ao recarregar a construção volta |
 | Link direto `#contact` | contato construído, sem resíduo |
 | Tab durante a construção | elementos focados nunca recortados |
 | Etiqueta "Você" | aparece com mouse durante a construção, some 1,5 s após parar; nunca em toque |
 | "Página pronta" | exibida ao concluir 89/89, depois HUD volta ao estado ocioso |
-| "Pular" via teclado | foco vai para o primeiro link visível ("Ver projetos") |
+| "Pular" via teclado | foco vai para "Rever" no HUD |
+| Profundidade 3D (Chromium e WebKit) | `animation-timeline: view()` suportado; recuo, canvas e chegada do contato renderizados sem erro |
+| Agentes acompanhando o 3D | rolagem contínua pela página: distância entre cursor de digitação/caixa e o texto sendo digitado = 0 px (99 amostras Chromium, 294 WebKit) |
 | User agent do Googlebot | sem `.mm-build`, sem overlay, nenhum recorte |
 | Desempenho, CPU 4× mais lenta | p99 16,8 ms por frame, 0 frames > 50 ms |
 
 ## Limites e riscos
 
 - Não testado em aparelhos físicos nem com leitor de tela real.
+- Navegadores sem suporte a `animation-timeline` ficam sem a profundidade 3D, mas o modo construção funciona normalmente. Firefox não foi testado.
 - LCP: o título e o retrato aparecem por animação (cerca de 2 s), o que pode piorar a métrica de LCP medida por ferramentas. Não medido com Lighthouse.
 - Os nomes dos agentes são um recurso visual; a página não afirma que foi construída por agentes.
