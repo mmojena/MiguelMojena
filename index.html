@@ -23,7 +23,8 @@
       setTimeout(function () { if (!d.classList.contains('mm-build-ready')) d.classList.remove('mm-build'); }, 4000);
     })(document.documentElement);
   </script>
-  <script src="assets/build-mode.js?v=3" defer></script>
+  <script src="assets/blueprint.js?v=1" defer></script>
+  <script src="assets/build-mode.js?v=4" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
@@ -90,10 +91,13 @@
     .button--primary:hover { background: var(--paper); }
     .button svg, .text-link svg { width: 16px; height: 16px; flex: 0 0 auto; }
     .hero__visual { align-self: stretch; position: relative; min-height: 640px; }
-    .hero__word { position: absolute; top: 13%; left: -8%; font: 700 clamp(100px, 14vw, 220px)/1 var(--display); letter-spacing: -.06em; color: #242b2d; z-index: -1; }
+    .hero__word { position: absolute; top: 47%; left: -8%; font: 700 clamp(100px, 14vw, 220px)/1 var(--display); letter-spacing: -.06em; color: var(--accent); z-index: 1; pointer-events: none; }
+    /* Portrait inside the name: the word sits behind the head, and its outline
+       continues in front of the body (lower part only, faded in by the mask). */
+    .hero__word--front { z-index: 3; color: transparent; -webkit-text-stroke: 1.5px var(--accent); -webkit-mask-image: linear-gradient(to bottom, transparent 45%, #000 70%); mask-image: linear-gradient(to bottom, transparent 45%, #000 70%); }
     .hero__shape { position: absolute; inset: 16% -6% 10% 0; background: var(--surface); border: 1px solid var(--line); clip-path: polygon(15% 0, 100% 0, 100% 86%, 86% 100%, 0 100%, 0 15%); }
     .hero__shape::after { content: ""; position: absolute; top: 0; left: 0; width: 120%; height: 1px; background: var(--accent); transform: rotate(-42deg); transform-origin: top left; }
-    .hero__photo { position: absolute; width: 114%; max-width: none; height: 94%; bottom: 0; left: -5%; object-fit: contain; object-position: center bottom; transform: translate(var(--portrait-x, 0px), var(--portrait-y, 0px)); transition: transform .45s ease-out; }
+    .hero__photo { position: absolute; z-index: 2; width: 114%; max-width: none; height: 94%; bottom: 0; left: -5%; object-fit: contain; object-position: center bottom; transform: translate(var(--portrait-x, 0px), var(--portrait-y, 0px)); transition: transform .45s ease-out; }
     .hero__caption { position: absolute; bottom: 28px; right: 0; z-index: 3; font-size: 12px; padding: 8px 12px; background: var(--ink); color: var(--muted); border-left: 2px solid var(--accent); }
     .hero__foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 24px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
     .hero__foot a { padding-block: 8px; color: var(--paper); }
@@ -108,6 +112,13 @@
     .project--reverse .project__preview { order: 2; }
     .project__preview { display: block; position: relative; background: var(--ink); overflow: hidden; border-radius: 6px; }
     .project__preview img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center; transition: filter .25s ease; }
+    /* Blueprint twin of each capture (assets/blueprint.js): hidden at rest, shown
+       by the build and by the x-ray lens under the cursor. */
+    .project__bp { position: absolute; top: 0; left: 0; clip-path: circle(0px at 50% 50%); pointer-events: none; }
+    .project__lens { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .2s ease; }
+    .project__preview.is-xray .project__lens { opacity: 1; }
+    .project__lens::before { content: ""; position: absolute; left: calc(var(--r, 0px) * -1); top: calc(var(--r, 0px) * -1); width: calc(var(--r, 0px) * 2); height: calc(var(--r, 0px) * 2); border: 1px solid var(--accent); border-radius: 50%; box-shadow: 0 0 0 1px rgba(17, 20, 22, .45), 0 0 28px rgba(184, 255, 44, .22); }
+    .project__lens-tag { position: absolute; left: calc(var(--r, 0px) * .7); top: calc(var(--r, 0px) * .7); padding: 2px 7px 3px; border-radius: 2px 9px 9px 9px; background: var(--accent); color: var(--ink); font: 500 11px/1.25 var(--body); white-space: nowrap; }
     .project__preview:hover img { filter: brightness(1.08); }
     .project__preview:focus-visible { outline-offset: 5px; }
     .project__type { display: block; margin-bottom: 12px; color: var(--muted); font-size: 12px; }
@@ -161,7 +172,7 @@
       .hero__visual { min-height: 620px; }
       .hero__photo { width: 130%; left: -15%; height: 90%; }
       .hero__caption { display: none; }
-      .hero__word { font-size: 150px; top: 20%; }
+      .hero__word { font-size: 150px; }
       .nav { gap: 20px; }
       .project--featured { grid-template-columns: 1.2fr 1fr; gap: 32px; }
       .project--reverse { grid-template-columns: 1fr 1.2fr; }
@@ -191,7 +202,7 @@
       .hero__visual { min-height: 0; height: 420px; width: 100%; margin-top: 12px; }
       .hero__photo { height: 106%; width: 100%; left: 0; }
       .hero__shape { inset: 14% 0 6%; }
-      .hero__word { top: 10%; left: 0; font-size: clamp(100px, 24vw, 180px); }
+      .hero__word { left: 0; font-size: clamp(100px, 24vw, 180px); }
       .hero__foot { padding-block: 18px; font-size: 11px; gap: 16px; }
       .hero__foot p { max-width: 25ch; }
       .section__head { display: block; margin-bottom: 32px; }
@@ -282,7 +293,7 @@
       .mmb-hud__bar { display: none; }
       .mmb-hud.is-idle { opacity: 0; visibility: hidden; transform: translate(-50%, 16px); }
     }
-    @media print { .mmb-layer, .mmb-hud, .mmb-me { display: none !important; } }
+    @media print { .mmb-layer, .mmb-hud, .mmb-me, .project__bp-pic, .project__lens { display: none !important; } }
     /* Scroll depth: the page as artboards on a dotted canvas. A section is
        pushed back into the canvas as it leaves, project captures pan inside
        their frames, hero layers part at different depths and the contact board
@@ -366,7 +377,8 @@
           <figure class="hero__visual">
             <span class="hero__word" aria-hidden="true">Mojena.</span>
             <div class="hero__shape" aria-hidden="true"></div>
-            <img class="hero__photo" src="assets/portrait.png" data-i18n-alt="hero.alt" alt="Retrato de Miguel Mojena, de boné, óculos e moletom" width="1149" height="1368" fetchpriority="high">
+            <picture><source type="image/webp" srcset="assets/portrait.webp"><img class="hero__photo" src="assets/portrait.png" data-i18n-alt="hero.alt" alt="Retrato de Miguel Mojena, de boné, óculos e moletom" width="1149" height="1368" fetchpriority="high"></picture>
+            <span class="hero__word hero__word--front" aria-hidden="true">Mojena.</span>
             <figcaption class="hero__caption" data-i18n="hero.caption">Criação, tecnologia e negócios.</figcaption>
           </figure>
         </div>
@@ -412,7 +424,7 @@
     </section>
     <section class="about section" id="sobre" aria-labelledby="about-title" tabindex="-1">
       <div class="wrap about__grid">
-        <figure class="about__photo"><img src="assets/contact-portrait-final.png" data-i18n-alt="about.alt" alt="Miguel Mojena de boné, com fones no pescoço e segurando um notebook" width="1149" height="1368" loading="lazy" decoding="async"></figure>
+        <figure class="about__photo"><picture><source type="image/webp" srcset="assets/contact-portrait-final.webp"><img src="assets/contact-portrait-final.png" data-i18n-alt="about.alt" alt="Miguel Mojena de boné, com fones no pescoço e segurando um notebook" width="1149" height="1368" loading="lazy" decoding="async"></picture></figure>
         <div class="about__copy"><h2 id="about-title" data-i18n="about.title">Prazer, Miguel.</h2><p class="about__lead" data-i18n="about.lead">Gosto de transformar ideias em coisas que as pessoas podem usar.</p><p data-i18n="about.p1">Meu trabalho reúne criação de sites para clientes e desenvolvimento de produtos próprios. A tecnologia entra para dar forma ao que o negócio precisa.</p><p data-i18n="about.p2">É entre criação, trabalho e construção de negócios que essa trajetória vai ganhando forma.</p><a class="text-link" href="https://www.instagram.com/miguelmojena/" target="_blank" rel="noopener noreferrer" data-i18n-aria="about.aria" aria-label="Acompanhar Miguel no Instagram, abre em nova aba"><span data-i18n="about.cta">Acompanhe no Instagram</span> <svg aria-hidden="true"><use href="#arrow"/></svg></a></div>
       </div>
     </section>
