@@ -51,7 +51,7 @@
   // [block selector, [[layer selector | ':scope', kind, options]]]
   const SPEC = [
     ['.hero__copy', [['.hero__intro', 'text'], ['h1 > span', 'text', { lead: true, cps: 30 }], ['.hero__description', 'text'], ['.actions .button', 'button']]],
-    ['.hero__visual', [['.hero__shape', 'shape'], ['.hero__word', 'text', { cps: 13 }], ['.hero__photo', 'image', { dir: 'up' }], ['.hero__caption', 'text']]],
+    ['.hero__visual', [['.hero__shape', 'shape'], ['.hero__word:not(.hero__word--front)', 'text', { cps: 13, twin: '.hero__word--front' }], ['.hero__photo', 'image', { dir: 'up' }], ['.hero__caption', 'text']]],
     ['.hero__foot', [[':scope', 'rule', { edge: 'top' }], ['p', 'text'], ['a', 'text']]],
     ['.work', [[':scope', 'fill']]],
     ['.work .section__head', [['h2', 'text', { lead: true, cps: 34 }], ['p', 'text']]],
@@ -343,6 +343,7 @@
           update(p) {
             const s = typingState(m, p);
             el.style.clipPath = typingClip(m, s);
+            if (l.twin) l.twin.style.clipPath = el.style.clipPath;
             const k = task.k;
             const top = b.y + s.line.y0 * k;
             const h = (s.line.y1 - s.line.y0) * k;
@@ -354,7 +355,10 @@
           },
         },
         settle(task, {
-          begin() { el.style.removeProperty('clip-path'); },
+          begin() {
+            el.style.removeProperty('clip-path');
+            l.twin?.style.removeProperty('clip-path');
+          },
           update(p) { caret.style.opacity = 1 - p; },
         }),
       ];
@@ -396,7 +400,78 @@
       const img = el.tagName === 'IMG' ? el : el.querySelector('img');
       const up = l.opts.dir === 'up';
       let b, ph, scan, waitedFrom;
+      // Project previews are drawn as a blueprint first (assets/blueprint.js).
+      let bp = null;
+      let bpSettled = true;
+      if (el.matches('.project__preview') && window.mmBlueprint) {
+        bpSettled = false;
+        window.mmBlueprint.ensure(el).then(found => { bp = found; bpSettled = true; });
+      }
       const loaded = () => !img || (img.complete && img.naturalWidth > 0);
+      const reveal = {
+        dur: 560 / SPEED,
+        begin() {
+          scan = tnode(task, 'mmb-scan', color);
+          scan.style.width = `${b.w}px`;
+          task.nodes.push(scan);
+          task.guides.fade(0);
+        },
+        update(p) {
+          const e = easeInOut(p);
+          el.style.clipPath = up ? `inset(${(1 - e) * 100}% 0 0 0)` : `inset(0 0 ${(1 - e) * 100}% 0)`;
+          const y = up ? b.y + b.h * (1 - e) : b.y + b.h * e;
+          scan.style.transform = `translate(${b.x}px, ${y - 1}px)`;
+          scan.style.opacity = Math.min(1, (1 - p) * 4);
+          agent.x = b.x + b.w - 6;
+          agent.y = y;
+          l.progress = p;
+        },
+      };
+      // Blueprint: the line drawing sweeps in from the left, then the real
+      // capture renders over it from the top behind a scanline.
+      const wire = {
+        dur: 640 / SPEED,
+        begin() {
+          bp.style.clipPath = 'none';
+          task.guides.fade(0);
+        },
+        update(p) {
+          const e = easeInOut(p);
+          el.style.clipPath = `inset(0 ${(1 - e) * 100}% 0 0)`;
+          ph.style.opacity = 1 - p;
+          agent.x = b.x + b.w * e;
+          agent.y = b.y + b.h * (.5 + Math.sin(p * Math.PI * 2) * .18);
+          l.progress = p * .45;
+        },
+      };
+      const render = {
+        dur: 760 / SPEED,
+        begin() {
+          el.style.removeProperty('clip-path');
+          scan = tnode(task, 'mmb-scan', color);
+          scan.style.width = `${b.w}px`;
+          task.nodes.push(scan);
+        },
+        update(p) {
+          const e = easeInOut(p);
+          bp.style.clipPath = `inset(${e * 100}% 0 0 0)`;
+          const y = b.y + b.h * e;
+          scan.style.transform = `translate(${b.x}px, ${y - 1}px)`;
+          scan.style.opacity = Math.min(1, (1 - p) * 4);
+          agent.x = b.x + b.w - 6;
+          agent.y = y;
+          l.progress = .45 + p * .55;
+        },
+      };
+      // Phases are picked once the wait is over: blueprint path or plain reveal.
+      const branch = {
+        phases: null,
+        begin() {
+          this.phases = bp ? [wire, render] : [reveal];
+          // Tells the x-ray lens to keep off while the agents draw here.
+          if (bp) el.classList.add('mmb-building');
+        },
+      };
       return [
         travel(agent, () => { b = task.anchor; return [b.x, b.y]; }),
         draw(task, () => b, 320, e => {
@@ -414,30 +489,18 @@
         }),
         {
           begin() { waitedFrom = clock; },
-          until: () => loaded() || clock - waitedFrom > 5000,
+          until: () => (loaded() && bpSettled) || clock - waitedFrom > 5000,
         },
-        {
-          dur: 560 / SPEED,
+        branch,
+        settle(task, {
           begin() {
-            scan = tnode(task, 'mmb-scan', color);
-            scan.style.width = `${b.w}px`;
-            task.nodes.push(scan);
-            task.guides.fade(0);
+            el.style.removeProperty('clip-path');
+            bp?.style.removeProperty('clip-path');
           },
           update(p) {
-            const e = easeInOut(p);
-            el.style.clipPath = up ? `inset(${(1 - e) * 100}% 0 0 0)` : `inset(0 0 ${(1 - e) * 100}% 0)`;
-            const y = up ? b.y + b.h * (1 - e) : b.y + b.h * e;
-            scan.style.transform = `translate(${b.x}px, ${y - 1}px)`;
-            scan.style.opacity = Math.min(1, (1 - p) * 4);
-            agent.x = b.x + b.w - 6;
-            agent.y = y;
-            l.progress = p;
+            const o = ph.style.opacity === '' ? 1 : +ph.style.opacity;
+            ph.style.opacity = Math.min(o, 1 - p);
           },
-        },
-        settle(task, {
-          begin() { el.style.removeProperty('clip-path'); },
-          update(p) { ph.style.opacity = 1 - p; },
         }),
       ];
     },
@@ -545,6 +608,8 @@
 
   function makeLayer(el, kind, opts, block) {
     const l = { el, kind, opts, block, state: 'hidden', progress: 0, task: null };
+    // A decorative copy that must show exactly what the layer shows.
+    l.twin = opts.twin ? block.el.querySelector(opts.twin) : null;
     if (kind === 'fill') l.fillColor = getComputedStyle(el).backgroundColor;
     l.onAccent = !!el.closest('.contact');
     layers.push(l);
@@ -560,7 +625,10 @@
       s.setProperty('--mmb-fill', l.fillColor);
       s.setProperty('--mmb-r', '0px');
       l.el.classList.add('mmb-fill');
-    } else s.clipPath = HIDDEN_CLIP;
+    } else {
+      s.clipPath = HIDDEN_CLIP;
+      if (l.twin) l.twin.style.clipPath = HIDDEN_CLIP;
+    }
     l.state = 'hidden';
     l.progress = 0;
   }
@@ -571,7 +639,15 @@
     else if (l.kind === 'fill') {
       l.el.classList.remove('mmb-fill');
       for (const p of ['--mmb-fill', '--mmb-r', '--mmb-x', '--mmb-y']) s.removeProperty(p);
-    } else s.removeProperty('clip-path');
+    } else {
+      s.removeProperty('clip-path');
+      l.twin?.style.removeProperty('clip-path');
+      // An interrupted blueprint stage must not leave the drawing on top.
+      if (l.kind === 'image') {
+        l.el.querySelector('.project__bp')?.style.removeProperty('clip-path');
+        l.el.classList.remove('mmb-building');
+      }
+    }
   }
 
   for (const [selector, specs] of SPEC) {
@@ -674,6 +750,10 @@
         ph.started = true;
         ph.t0 = task.tNext;
         ph.begin?.(ph);
+        if (ph.phases) {
+          task.phases.splice(task.i, 1, ...ph.phases);
+          continue;
+        }
       }
       if (ph.until) {
         if (!ph.until()) { task.tNext = clock; return; }

@@ -12,7 +12,9 @@ Revisão independente (subagente sem contexto) aprovada sem achados de seguranç
 - boot sem proteção contra exceção;
 - `innerHTML` no nome do arquivo do placeholder.
 
-**Atualização 05/11/2026, branch `feat/rolagem-3d`:** pedido do Miguel após ver em produção. "Pular" deixa de desligar a animação para as próximas aberturas: vale só para a visita atual, e toda abertura ou recarga constrói de novo. Entra a profundidade 3D na rolagem (seção abaixo). Merge e deploy aguardam a aprovação do Miguel.
+**Atualização 05/11/2026, branch `feat/rolagem-3d`:** pedido do Miguel após ver em produção. "Pular" deixa de desligar a animação para as próximas aberturas: vale só para a visita atual, e toda abertura ou recarga constrói de novo. Entra a profundidade 3D na rolagem (seção abaixo). Publicado com autorização do Miguel (PR #5).
+
+**Atualização 05/11/2026, branch `feat/blueprint-nome`:** camadas inspiradas no getlayers.ai, escolhidas a partir de consulta aos perfis `commercial` e `strategist`. Os dois priorizaram "blueprint → site real" e "retrato dentro do nome" e desaconselharam vitrine 3D, abertura com monograma e modo inspeção. Detalhes na seção "Planta, nome e peso". Publicação autorizada por Miguel em 05/11/2026.
 
 ## Referência e ideia
 
@@ -26,14 +28,27 @@ Adaptação para o portfólio: um esquadrão de cursores-agente (Miguel, Estrat�
 - Tipos de camada:
   - `text`: caixa desenhada com medida ao vivo, depois digitação linha a linha via `clip-path: polygon` e cursor de texto;
   - `button`: preenchimento varrendo e clique;
-  - `image`: placeholder com X e nome do arquivo, espera o carregamento e revela com scanline;
+  - `image`: placeholder com X e nome do arquivo, espera o carregamento e revela com scanline. Nas capturas de projeto, a planta é desenhada primeiro, varrendo da esquerda, e a captura real é renderizada sobre ela de cima para baixo;
   - `shape`: escala a partir do canto;
   - `rule`: borda puxada com selo de largura;
   - `fill`: balde de tinta no fundo das seções Projetos e Contato.
 - Overlay absoluto (`.mmb-layer`, `aria-hidden`) abaixo do cabeçalho fixo. HUD com contagem real de camadas, "Rever" (refaz o que está na tela) e "Pular" (conclui tudo nesta visita; o HUD continua com "Rever" e o foco de teclado passa para ele). Nada é gravado no navegador: toda abertura ou recarga constrói de novo. Quando a última camada é montada, o HUD mostra "✓ Página pronta" por 2,6 s.
 - Cada tarefa guarda a caixa do elemento no início ("âncora") e, a cada quadro, mapeia a âncora sobre a caixa atual (translação + escala) num contêiner `.mmb-task`. Assim seleção, cursor de digitação, placeholder e o agente acompanham o elemento enquanto a profundidade 3D o move. As medidas de linha ficam em pixels CSS do elemento (a escala dos ancestrais é descontada), então o recorte do texto continua exato.
 - Visitante no time: com mouse (`hover: hover` e `pointer: fine`), uma etiqueta "Você" acompanha o cursor real enquanto os agentes trabalham. O cursor do sistema não é substituído; em toque a etiqueta não aparece.
-- Bootstrap no `<head>` adiciona `.mm-build` só com movimento permitido e se o user agent não é de robô de busca ou de prévia de link (Googlebot, Bingbot, LinkedIn, X etc.). Se o script não assumir em 4 s, a página aparece normalmente. O script tem versão na URL (`?v=3`) por causa do cache de 10 min do GitHub Pages.
+- Bootstrap no `<head>` adiciona `.mm-build` só com movimento permitido e se o user agent não é de robô de busca ou de prévia de link (Googlebot, Bingbot, LinkedIn, X etc.). Se o script não assumir em 4 s, a página aparece normalmente. Os scripts têm versão na URL (`build-mode.js?v=4`, `blueprint.js?v=1`) por causa do cache de 10 min do GitHub Pages.
+
+## Planta, nome e peso
+
+- **Planta das capturas** (`assets/blueprint.js`, `assets/projects/blueprint/*.avif`):
+  - Cada captura tem uma versão em linhas verde-limão sobre grafite, com grade de 32 px. Ela é gerada da própria captura por detecção de bordas no ffmpeg (`edgedetect` com limiares 0,06/0,16; Antônia 0,12/0,3, por excesso de detalhe). É uma estilização da página pronta, não o wireframe original do projeto.
+  - O módulo cria um `<picture>` gêmeo dentro de cada `.project__preview`, espelhando os `<source>` de celular e computador. As plantas são carregadas a 900 px de distância e são decorativas (`alt=""`, `aria-hidden`, sem eventos de ponteiro).
+  - Se o AVIF não decodificar, a planta é pulada: a montagem cai na revelação simples e a lente não aparece.
+  - Lente "raio-x" (só com mouse): um círculo de 104 px mostra a planta sob o cursor, com anel e etiqueta "Estrutura" (EN "Structure", ES "Estructura"). Fica desligada enquanto os agentes montam aquele quadro (`.mmb-building`).
+- **Retrato dentro do nome:** "Mojena." passou a ser verde-limão sólido, na altura do peito, atrás da cabeça e na frente do painel. Uma cópia `.hero__word--front`, só com contorno e máscara na metade de baixo, passa na frente do corpo. A cópia acompanha a digitação dos agentes (`twin`) e a profundidade da rolagem. Antes, a palavra ficava atrás do painel e quase não aparecia.
+- **Peso:**
+  - Os retratos ganharam `<picture>` com WebP com transparência: `portrait.webp` tem 110 KB (antes 1,5 MB em PNG) e `contact-portrait-final.webp` tem 112 KB (antes 1,3 MB). O PNG continua como reserva.
+  - Medição local em condição de celular lento (Chromium, 412×823, CPU 4× mais lenta, 150 ms de latência, 1,6 Mbps, sem cache, mediana de 3 rodadas): 1.681 KB → 353 KB baixados (−79%). FCP 784 → 916 ms e LCP 2.620 → 2.720 ms, dentro da variação entre rodadas (em outra medição da versão anterior: 616 e 2.280 ms). O LCP é o título, que surge pela digitação dos agentes, e por isso não depende do peso. Não é nota do PageSpeed: a API pública do Google estava sem cota no dia.
+  - O WebP foi codificado pelo canvas do Chromium. O AVIF com transparência gerado pelo `sips` do macOS aparece totalmente transparente no Chromium (verificado lendo pixels), e o ffmpeg local (SVT-AV1) não codifica canal alfa monocromático.
 
 ## Profundidade na rolagem (pranchetas num canvas)
 
