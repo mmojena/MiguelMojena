@@ -9,6 +9,10 @@
  * available to search engines, screen readers and the i18n script. The
  * <head> bootstrap only adds `.mm-build` when motion is allowed, and drops it
  * after a few seconds if this file never reports ready.
+ *
+ * The page also moves on its own (scroll-driven 3D in index.html), so every
+ * task keeps its overlay in an "anchor" frame captured when it starts and
+ * maps that frame onto the element's current box on every animation frame.
  */
 (() => {
   'use strict';
@@ -16,7 +20,6 @@
   const root = document.documentElement;
   if (!root.classList.contains('mm-build')) return;
 
-  const STORAGE_KEY = 'mm-build';
   const ACCENT = '#b8ff2c';
   const INK = '#111416';
   const HIDDEN_CLIP = 'inset(0 0 100% 0)';
@@ -99,20 +102,25 @@
   layer.className = 'mmb-layer';
   layer.setAttribute('aria-hidden', 'true');
   document.body.appendChild(layer);
-  function node(cls, color) {
+  function node(cls, color, parent = layer) {
     const n = document.createElement('div');
     n.className = cls;
     if (color) n.style.setProperty('--c', color);
-    layer.appendChild(n);
+    parent.appendChild(n);
     return n;
   }
+  // Overlay node owned by a task: lives in the task frame (see track()).
+  const tnode = (task, cls, color) => node(cls, color, task.wrap);
   function sizeLayer() {
     layer.style.height = `${Math.ceil(document.body.getBoundingClientRect().height)}px`;
   }
 
-  // Text lines of an element, in element-local coordinates.
+  // Text lines of an element, in element-local CSS pixels (ancestor scale,
+  // e.g. a receding section, is divided out so clip-path stays exact).
   function measureLines(el) {
     const r = el.getBoundingClientRect();
+    const kx = r.width / (el.offsetWidth || r.width) || 1;
+    const ky = r.height / (el.offsetHeight || r.height) || 1;
     const range = document.createRange();
     range.selectNodeContents(el);
     const rects = [...range.getClientRects()].filter(q => q.width > .5 && q.height > .5);
@@ -133,15 +141,15 @@
     }
     if (!lines.length) lines.push({ left: r.left, right: r.right, top: r.top, bottom: r.bottom });
     lines.sort((a, b) => a.top - b.top);
-    const local = lines.map(l => ({ x0: l.left - r.left, x1: l.right - r.left, y0: l.top - r.top, y1: l.bottom - r.top }));
+    const local = lines.map(l => ({ x0: (l.left - r.left) / kx, x1: (l.right - r.left) / kx, y0: (l.top - r.top) / ky, y1: (l.bottom - r.top) / ky }));
     // Bands split overlapping line boxes at their midpoints; outer bands bleed
     // past the box so glyph overhangs are never cut.
     local.forEach((l, i) => {
       l.b0 = i === 0 ? -48 : (local[i - 1].y1 + l.y0) / 2;
-      l.b1 = i === local.length - 1 ? r.height + 48 : (l.y1 + local[i + 1].y0) / 2;
+      l.b1 = i === local.length - 1 ? r.height / ky + 48 : (l.y1 + local[i + 1].y0) / 2;
       l.len = Math.max(1, l.x1 - l.x0);
     });
-    return { w: r.width, h: r.height, lines: local, total: local.reduce((s, l) => s + l.len, 0) };
+    return { w: r.width / kx, h: r.height / ky, lines: local, total: local.reduce((s, l) => s + l.len, 0) };
   }
 
   // Line k revealed up to x: everything above, plus the current line until x.
@@ -164,9 +172,9 @@
 
   // ---------------------------------------------------------------- overlay parts
   function selection(task, color) {
-    const sel = node('mmb-sel', color);
+    const sel = tnode(task, 'mmb-sel', color);
     sel.innerHTML = '<i></i><i></i><i></i><i></i>';
-    const badge = node('mmb-badge', color);
+    const badge = tnode(task, 'mmb-badge', color);
     task.nodes.push(sel, badge);
     return {
       set(x, y, w, h) {
@@ -180,15 +188,15 @@
     };
   }
   function guides(task, b, area) {
-    const h = node('mmb-guide');
-    const v = node('mmb-guide');
+    const h = tnode(task, 'mmb-guide');
+    const v = tnode(task, 'mmb-guide');
     task.nodes.push(h, v);
     h.style.cssText = `transform: translate(${area.x - 32}px, ${b.y}px); width: ${area.w + 64}px; height: 1px;`;
     v.style.cssText = `transform: translate(${b.x}px, ${area.y - 32}px); width: 1px; height: ${area.h + 64}px;`;
     return { fade(o) { h.style.opacity = o * .6; v.style.opacity = o * .6; } };
   }
-  function ripple(x, y, color) {
-    const r = node('mmb-ripple', color);
+  function ripple(task, x, y, color) {
+    const r = tnode(task, 'mmb-ripple', color);
     r.style.left = `${x}px`;
     r.style.top = `${y}px`;
     setTimeout(() => r.remove(), 650);
@@ -243,7 +251,8 @@
       const idle = this.task ? 0 : 1;
       const ox = Math.sin(clock * .0017 + this.index * 1.7) * 5 * idle;
       const oy = Math.cos(clock * .0013 + this.index * 2.3) * 4 * idle;
-      this.el.style.transform = `translate3d(${this.x + ox}px, ${this.y + oy}px, 0)`;
+      const [x, y] = this.task ? toPage(this.task, this.x, this.y) : [this.x, this.y];
+      this.el.style.transform = `translate3d(${x + ox}px, ${y + oy}px, 0)`;
       this.el.style.opacity = this.alpha.toFixed(3);
       this.el.classList.toggle('is-text', this.mode === 'text');
       this.el.classList.toggle('is-press', clock < this.pressUntil);
@@ -319,15 +328,14 @@
       const el = l.el;
       let b, m, caret;
       return [
-        travel(agent, () => { b = pageBox(el); return [b.x, b.y]; }),
+        travel(agent, () => { b = task.anchor; return [b.x, b.y]; }),
         draw(task, () => b, 210),
         {
           begin(ph) {
             m = measureLines(el);
-            b = pageBox(el);
             const chars = (el.textContent || '').replace(/\s+/g, ' ').trim().length || 8;
             ph.dur = clamp(chars * 1000 / (l.opts.cps || 95), 160, 1300) / SPEED;
-            caret = node('mmb-caret', color);
+            caret = tnode(task, 'mmb-caret', color);
             task.nodes.push(caret);
             task.guides.fade(0);
             agent.mode = 'text';
@@ -335,11 +343,12 @@
           update(p) {
             const s = typingState(m, p);
             el.style.clipPath = typingClip(m, s);
-            const top = b.y + s.line.y0;
-            const h = s.line.y1 - s.line.y0;
-            caret.style.transform = `translate(${b.x + s.x}px, ${top}px)`;
+            const k = task.k;
+            const top = b.y + s.line.y0 * k;
+            const h = (s.line.y1 - s.line.y0) * k;
+            caret.style.transform = `translate(${b.x + s.x * k}px, ${top}px)`;
             caret.style.height = `${h}px`;
-            agent.x = b.x + s.x + 12;
+            agent.x = b.x + s.x * k + 12;
             agent.y = top + h / 2 + 4;
             l.progress = p;
           },
@@ -356,7 +365,7 @@
       const el = l.el;
       let b;
       return [
-        travel(agent, () => { b = pageBox(el); return [b.x, b.y]; }),
+        travel(agent, () => { b = task.anchor; return [b.x, b.y]; }),
         draw(task, () => b, 230),
         {
           dur: 320 / SPEED,
@@ -374,7 +383,7 @@
             el.style.removeProperty('clip-path');
             agent.x = b.x + b.w * .82;
             agent.press();
-            ripple(agent.x, agent.y, task.color);
+            ripple(task, agent.x, agent.y, task.color);
           },
         },
         settle(task),
@@ -389,10 +398,10 @@
       let b, ph, scan, waitedFrom;
       const loaded = () => !img || (img.complete && img.naturalWidth > 0);
       return [
-        travel(agent, () => { b = pageBox(el); return [b.x, b.y]; }),
+        travel(agent, () => { b = task.anchor; return [b.x, b.y]; }),
         draw(task, () => b, 320, e => {
           if (!ph) {
-            ph = node('mmb-ph', color);
+            ph = tnode(task, 'mmb-ph', color);
             const file = img ? (img.currentSrc || img.src).split('/').pop().split('?')[0] : '';
             const name = document.createElement('span');
             name.textContent = file;
@@ -410,7 +419,7 @@
         {
           dur: 560 / SPEED,
           begin() {
-            scan = node('mmb-scan', color);
+            scan = tnode(task, 'mmb-scan', color);
             scan.style.width = `${b.w}px`;
             task.nodes.push(scan);
             task.guides.fade(0);
@@ -438,7 +447,7 @@
       const el = l.el;
       let b;
       return [
-        travel(agent, () => { b = naturalBox(el); return [b.x, b.y]; }),
+        travel(agent, () => { b = task.anchor; return [b.x, b.y]; }),
         draw(task, () => b, 380, e => {
           el.style.transform = `scale(${Math.max(.001, e)})`;
           l.progress = e;
@@ -454,15 +463,15 @@
       let b, y, line, badge;
       return [
         travel(agent, () => {
-          b = pageBox(el);
+          b = task.anchor;
           y = edge === 'top' ? b.y : b.y + b.h - 1;
           return [b.x, y];
         }),
         {
           dur: 440 / SPEED,
           begin() {
-            line = node('mmb-rule', color);
-            badge = node('mmb-badge', color);
+            line = tnode(task, 'mmb-rule', color);
+            badge = tnode(task, 'mmb-badge', color);
             task.nodes.push(line, badge);
           },
           update(p) {
@@ -494,7 +503,7 @@
       let b, cx, cy, maxR;
       return [
         travel(agent, () => {
-          b = pageBox(el);
+          b = task.anchor;
           const v = view();
           cx = b.x + b.w * (SMALL ? .5 : .14);
           cy = clamp(v.y + v.h * .38, b.y + 48, b.y + b.h - 48);
@@ -502,14 +511,18 @@
         }),
         {
           dur: 160,
-          begin() { agent.press(); ripple(cx, cy, color); },
+          begin() { agent.press(); ripple(task, cx, cy, color); },
         },
         {
           dur: 900 / SPEED,
           begin() {
-            const lx = cx - b.x;
-            const ly = cy - b.y;
-            maxR = Math.max(Math.hypot(lx, ly), Math.hypot(b.w - lx, ly), Math.hypot(lx, b.h - ly), Math.hypot(b.w - lx, b.h - ly));
+            // ::before lives in CSS pixels; the anchor box may be scaled.
+            const k = task.k;
+            const lx = (cx - b.x) / k;
+            const ly = (cy - b.y) / k;
+            const w = b.w / k;
+            const h = b.h / k;
+            maxR = Math.max(Math.hypot(lx, ly), Math.hypot(w - lx, ly), Math.hypot(lx, h - ly), Math.hypot(w - lx, h - ly));
             el.style.setProperty('--mmb-x', `${lx}px`);
             el.style.setProperty('--mmb-y', `${ly}px`);
           },
@@ -619,11 +632,36 @@
   }
 
   // ---------------------------------------------------------------- tasks
+  // The box a task follows. A shape is hidden by its own inline transform,
+  // which must not count as movement.
+  const trackBox = l => (l.kind === 'shape' ? naturalBox(l.el) : pageBox(l.el));
+  // Map a point from the task's anchor frame to the page.
+  function toPage(task, x, y) {
+    const m = task.map;
+    if (!m) return [x, y];
+    return [m.x + (x - task.anchor.x) * m.sx, m.y + (y - task.anchor.y) * m.sy];
+  }
+  // Follow the element: the overlay frame becomes the anchor box mapped onto
+  // the current box (translation + scale; small 3D tilts read as their bounds).
+  function track(task, cur) {
+    const a = task.anchor;
+    const sx = a.w > 1 && cur.w > 0 ? cur.w / a.w : 1;
+    const sy = a.h > 1 && cur.h > 0 ? cur.h / a.h : 1;
+    const still = Math.abs(cur.x - a.x) < .25 && Math.abs(cur.y - a.y) < .25 && Math.abs(sx - 1) < .001 && Math.abs(sy - 1) < .001;
+    task.map = still ? null : { x: cur.x, y: cur.y, sx, sy };
+    task.wrap.style.transform = still ? '' : `translate(${cur.x}px, ${cur.y}px) scale(${sx}, ${sy}) translate(${-a.x}px, ${-a.y}px)`;
+  }
   function start(agent, l) {
     queue.splice(queue.indexOf(l), 1);
     l.state = 'active';
     const color = l.onAccent && agent.def.color === ACCENT ? INK : agent.def.color;
-    const task = { agent, layer: l, color, nodes: [], i: 0, tNext: clock };
+    const anchor = trackBox(l);
+    const task = {
+      agent, layer: l, color, nodes: [], i: 0, tNext: clock,
+      anchor, map: null, wrap: node('mmb-task'),
+      // Rendered px per CSS px of the element when the task began.
+      k: anchor.w / (l.el.offsetWidth || anchor.w) || 1,
+    };
     task.phases = PLANS[l.kind](task);
     l.task = task;
     agent.task = task;
@@ -654,8 +692,9 @@
   function release(task) {
     if (!tasks.has(task)) return;
     tasks.delete(task);
-    for (const n of task.nodes) n.remove();
     const a = task.agent;
+    [a.x, a.y] = toPage(task, a.x, a.y);
+    task.wrap.remove();
     a.task = null;
     a.mode = 'arrow';
     a.idleSince = clock;
@@ -777,7 +816,7 @@
   hud.addEventListener('click', event => {
     const act = event.target.closest('button')?.dataset.act;
     if (act === 'replay') replay();
-    if (act === 'skip') turnOff();
+    if (act === 'skip') skipAll();
   });
 
   function replay() {
@@ -789,18 +828,12 @@
     for (const b of inView) enqueue(b);
     for (const a of agents) a.readyAt = Math.max(a.readyAt, clock + 120 + a.index * 25);
   }
-  function turnOff() {
-    const hadFocus = hud.contains(document.activeElement);
+  // Skip lands the whole page for this visit only: every load or reload
+  // builds again, and Replay stays available.
+  function skipAll() {
     finish({ everything: true });
-    try { sessionStorage.setItem(STORAGE_KEY, 'off'); } catch (error) { /* storage blocked */ }
-    teardown();
-    // The focused button is gone: hand focus to the first link on screen.
-    if (!hadFocus) return;
-    const next = [...document.querySelectorAll('main a[href], main button, footer a[href]')].find(e => {
-      const r = e.getBoundingClientRect();
-      return r.width > 0 && r.bottom > 0 && r.top < innerHeight;
-    });
-    (next || document.querySelector('#conteudo'))?.focus({ preventScroll: true });
+    if (document.activeElement === hudParts.skip) hudParts.replay.focus();
+    wake();
   }
   let alive = true;
   function teardown() {
@@ -828,7 +861,10 @@
       const l = pick(a);
       if (l) start(a, l);
     }
-    for (const task of [...tasks]) step(task);
+    const live = [...tasks];
+    const boxes = live.map(task => trackBox(task.layer));
+    live.forEach((task, i) => track(task, boxes[i]));
+    for (const task of live) step(task);
     for (const a of agents) a.render(dt);
     const busy = tasks.size > 0 || queue.length > 0;
     updateHud(busy);
