@@ -13,7 +13,7 @@ Levar ao portfólio a identidade aprovada no perfil do GitHub (direção executi
 | Camada de identidade: paleta mais profunda, Archivo nos títulos, JetBrains Mono nos rótulos, botões, molduras de mira nas capturas e no retrato, grão, índices de seção (01–05, nos três idiomas) | `assets/identity.css` (novo) | Só aparência |
 | Símbolo Pedra-chave no cabeçalho, no rodapé e no favicon | `index.html` (`#mm-symbol`, `<link rel="icon">`) | Troca do desenho |
 | Mostrador "Calibre MM-01" atrás do retrato: anéis, radar e marcadores que acendem, tudo girando no compositor | `index.html` (`.id-dial`, decorativo, `aria-hidden`) | Acréscimo |
-| Contato como "sinal": holofote projeta o símbolo nas nuvens; botão no verde | `index.html` (`.id-signal`) + `assets/identity/signal.webp` | Acréscimo + aparência |
+| Contato como "sinal" minimalista: só nuvens e o M discreto projetado nelas (sem logo em destaque, sem verde no céu); botão no verde | `index.html` (`.id-signal`) + `assets/identity/signal.webp` | Acréscimo + aparência |
 | Imagem de compartilhamento (WhatsApp, LinkedIn etc.) | `assets/identity/og.jpg` + metatags `og:image` | Acréscimo |
 | Fontes Archivo (largura variável) e JetBrains Mono | `<link>` do Google Fonts | Acréscimo (as fontes anteriores continuam carregadas) |
 | Modo construção: os agentes também constroem o mostrador e o sinal | `assets/build-mode.js` (SPEC +2 entradas) | Acréscimo |
