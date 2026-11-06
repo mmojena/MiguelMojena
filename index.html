@@ -5,13 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="meta.title">Miguel Mojena — Criador e fundador</title>
   <meta name="description" data-i18n-content="meta.description" content="Ideias que ganham forma. Negócios que ganham presença. Miguel Mojena cria sites, landing pages e produtos digitais para clientes e negócios próprios.">
-  <meta name="theme-color" content="#111416">
+  <meta name="theme-color" content="#060809">
   <meta property="og:type" content="website">
   <meta property="og:locale" data-i18n-content="meta.ogLocale" content="pt_BR">
   <meta property="og:title" data-i18n-content="meta.ogTitle" content="Miguel Mojena — Criador e fundador">
   <meta property="og:description" data-i18n-content="meta.ogDescription" content="Sites, landing pages e produtos digitais. Conheça os projetos e converse sobre a sua próxima ideia.">
   <meta property="og:site_name" content="Miguel Mojena">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23111416'/%3E%3Cpath fill='%23f2f4ef' d='M0 0h24l26 28L76 0h24v100H76V38L50 66 24 38v62H0z'/%3E%3Cpath fill='%23111416' d='M0 0h10l90 90v10H90L0 10z'/%3E%3Crect x='80' y='80' width='20' height='20' fill='%23b8ff2c'/%3E%3C/svg%3E">
+  <meta property="og:image" content="https://mmojena.github.io/MiguelMojena/assets/identity/og.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Miguel Mojena, criador e fundador. Símbolo Pedra-chave em metal.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Crect width='160' height='160' rx='34' fill='%23060809'/%3E%3Cg transform='translate%2820 30%29'%3E%3Cpath fill='%23e9edef' d='M0 100L0 0L32 0L57 54.3L40 72.5L20 31L20 100ZM120 100L120 0L88 0L63 54.3L80 72.5L100 31L100 100Z'/%3E%3Cpath fill='%23b8ff2c' d='M60 61L77 78L60 95L43 78Z'/%3E%3C/g%3E%3C/svg%3E">
   <script>
     // Build mode runs on every load when motion is allowed ("Pular" only skips the current visit).
     // Search and link-preview crawlers get the finished page.
@@ -24,10 +30,10 @@
     })(document.documentElement);
   </script>
   <script src="assets/blueprint.js?v=1" defer></script>
-  <script src="assets/build-mode.js?v=4" defer></script>
+  <script src="assets/build-mode.js?v=5" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..800&family=Archivo+Narrow:wght@500;600;700&family=JetBrains+Mono:wght@500;600&family=Space+Grotesk:wght@400;500;600&display=swap">
   <style>
     :root {
       --ink: #111416;
@@ -322,15 +328,15 @@
       .hero__photo { transform: none !important; }
     }
   </style>
+  <link rel="stylesheet" href="assets/identity.css?v=5">
 </head>
 <body>
   <a class="skip" href="#conteudo" data-i18n="skip">Pular para o conteúdo</a>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-    <symbol id="mm-symbol" viewBox="0 0 100 100">
+    <symbol id="mm-symbol" viewBox="0 0 120 100">
       <title>Símbolo de Miguel Mojena</title>
-      <path class="logo__m" d="M0 0h24l26 28L76 0h24v100H76V38L50 66 24 38v62H0z"/>
-      <path class="logo__cut" d="M0 0h10l90 90v10H90L0 10z"/>
-      <rect class="logo__node" x="80" y="80" width="20" height="20" fill="var(--accent)"/>
+      <path class="logo__m" d="M0 100L0 0L32 0L57 54.3L40 72.5L20 31L20 100ZM120 100L120 0L88 0L63 54.3L80 72.5L100 31L100 100Z"/>
+      <path class="logo__node" d="M60 61L77 78L60 95L43 78Z" fill="var(--accent)"/>
     </symbol>
     <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
   </svg>
@@ -375,6 +381,13 @@
             </div>
           </div>
           <figure class="hero__visual">
+            <div class="id-dial" aria-hidden="true">
+              <svg class="id-dial__base" viewBox="0 0 600 600" focusable="false"><circle cx="300" cy="300" r="292" fill="none" stroke="var(--id-edge)" stroke-width="1"/><circle cx="300" cy="300" r="250" fill="none" stroke="var(--id-line)" stroke-width="1"/><circle cx="300" cy="300" r="176" fill="none" stroke="var(--id-line)" stroke-width="1" stroke-dasharray="1 6"/><path d="M300.0 18.0L300.0 36.0M329.5 19.5L328.5 28.5M358.6 24.2L356.8 33.0M387.1 31.8L384.4 40.4M414.7 42.4L411.0 50.6M441.0 55.8L432.0 71.4M465.8 71.9L460.5 79.1M488.7 90.4L482.7 97.1M509.6 111.3L502.9 117.3M528.1 134.2L520.9 139.5M544.2 159.0L528.6 168.0M557.6 185.3L549.4 189.0M568.2 212.9L559.6 215.6M575.8 241.4L567.0 243.2M580.5 270.5L571.5 271.5M582.0 300.0L564.0 300.0M580.5 329.5L571.5 328.5M575.8 358.6L567.0 356.8M568.2 387.1L559.6 384.4M557.6 414.7L549.4 411.0M544.2 441.0L528.6 432.0M528.1 465.8L520.9 460.5M509.6 488.7L502.9 482.7M488.7 509.6L482.7 502.9M465.8 528.1L460.5 520.9M441.0 544.2L432.0 528.6M414.7 557.6L411.0 549.4M387.1 568.2L384.4 559.6M358.6 575.8L356.8 567.0M329.5 580.5L328.5 571.5M300.0 582.0L300.0 564.0M270.5 580.5L271.5 571.5M241.4 575.8L243.2 567.0M212.9 568.2L215.6 559.6M185.3 557.6L189.0 549.4M159.0 544.2L168.0 528.6M134.2 528.1L139.5 520.9M111.3 509.6L117.3 502.9M90.4 488.7L97.1 482.7M71.9 465.8L79.1 460.5M55.8 441.0L71.4 432.0M42.4 414.7L50.6 411.0M31.8 387.1L40.4 384.4M24.2 358.6L33.0 356.8M19.5 329.5L28.5 328.5M18.0 300.0L36.0 300.0M19.5 270.5L28.5 271.5M24.2 241.4L33.0 243.2M31.8 212.9L40.4 215.6M42.4 185.3L50.6 189.0M55.8 159.0L71.4 168.0M71.9 134.2L79.1 139.5M90.4 111.3L97.1 117.3M111.3 90.4L117.3 97.1M134.2 71.9L139.5 79.1M159.0 55.8L168.0 71.4M185.3 42.4L189.0 50.6M212.9 31.8L215.6 40.4M241.4 24.2L243.2 33.0M270.5 19.5L271.5 28.5" stroke="var(--id-tick)" stroke-width="2" fill="none"/></svg>
+              <svg class="id-dial__ring" viewBox="0 0 600 600" focusable="false"><path id="id-dial-path" d="M300 63a237 237 0 1 1 0 474a237 237 0 1 1 0-474" fill="none"/><text><textPath href="#id-dial-path" textLength="1480" lengthAdjust="spacing">MIGUEL MOJENA — MM/01 — MIGUEL MOJENA — MM/01 — MIGUEL MOJENA — MM/01 —</textPath></text></svg>
+              <svg class="id-dial__arcs" viewBox="0 0 600 600" focusable="false"><path d="M372.5 100.8A212 212 0 0 1 499.2 372.5M227.5 499.2A212 212 0 0 1 116.4 406.0M92.6 255.9A212 212 0 0 1 116.4 194.0" stroke="var(--id-edge)" stroke-width="2" fill="none"/><path d="M462.4 436.3A212 212 0 0 1 399.5 487.2" stroke="var(--accent)" stroke-opacity=".75" stroke-width="2" fill="none"/></svg>
+              <svg class="id-dial__arcs id-dial__arcs--slow" viewBox="0 0 600 600" focusable="false"><path d="M300.0 72.0A228 228 0 0 1 514.2 222.0M300.0 528.0A228 228 0 0 1 85.8 222.0" stroke="var(--id-line)" stroke-width="6" fill="none"/></svg>
+              <div class="id-dial__sweep"><div class="id-dial__wedge"></div><svg class="id-dial__lit" viewBox="0 0 600 600" focusable="false"><path d="M300.0 18.0L300.0 36.0M329.5 19.5L328.5 28.5M358.6 24.2L356.8 33.0M387.1 31.8L384.4 40.4M414.7 42.4L411.0 50.6M441.0 55.8L432.0 71.4M465.8 71.9L460.5 79.1M488.7 90.4L482.7 97.1M509.6 111.3L502.9 117.3M528.1 134.2L520.9 139.5M544.2 159.0L528.6 168.0M557.6 185.3L549.4 189.0M568.2 212.9L559.6 215.6M575.8 241.4L567.0 243.2M580.5 270.5L571.5 271.5M582.0 300.0L564.0 300.0M580.5 329.5L571.5 328.5M575.8 358.6L567.0 356.8M568.2 387.1L559.6 384.4M557.6 414.7L549.4 411.0M544.2 441.0L528.6 432.0M528.1 465.8L520.9 460.5M509.6 488.7L502.9 482.7M488.7 509.6L482.7 502.9M465.8 528.1L460.5 520.9M441.0 544.2L432.0 528.6M414.7 557.6L411.0 549.4M387.1 568.2L384.4 559.6M358.6 575.8L356.8 567.0M329.5 580.5L328.5 571.5M300.0 582.0L300.0 564.0M270.5 580.5L271.5 571.5M241.4 575.8L243.2 567.0M212.9 568.2L215.6 559.6M185.3 557.6L189.0 549.4M159.0 544.2L168.0 528.6M134.2 528.1L139.5 520.9M111.3 509.6L117.3 502.9M90.4 488.7L97.1 482.7M71.9 465.8L79.1 460.5M55.8 441.0L71.4 432.0M42.4 414.7L50.6 411.0M31.8 387.1L40.4 384.4M24.2 358.6L33.0 356.8M19.5 329.5L28.5 328.5M18.0 300.0L36.0 300.0M19.5 270.5L28.5 271.5M24.2 241.4L33.0 243.2M31.8 212.9L40.4 215.6M42.4 185.3L50.6 189.0M55.8 159.0L71.4 168.0M71.9 134.2L79.1 139.5M90.4 111.3L97.1 117.3M111.3 90.4L117.3 97.1M134.2 71.9L139.5 79.1M159.0 55.8L168.0 71.4M185.3 42.4L189.0 50.6M212.9 31.8L215.6 40.4M241.4 24.2L243.2 33.0M270.5 19.5L271.5 28.5" stroke="var(--accent)" stroke-width="2.4" fill="none"/></svg></div>
+            </div>
             <span class="hero__word" aria-hidden="true">Mojena.</span>
             <div class="hero__shape" aria-hidden="true"></div>
             <picture><source type="image/webp" srcset="assets/portrait.webp"><img class="hero__photo" src="assets/portrait.png" data-i18n-alt="hero.alt" alt="Retrato de Miguel Mojena, de boné, óculos e moletom" width="1149" height="1368" fetchpriority="high"></picture>
@@ -435,6 +448,7 @@
       </div>
     </section>
     <section class="contact section" id="contact" aria-labelledby="contact-title" tabindex="-1">
+      <div class="id-signal" aria-hidden="true"><img src="assets/identity/signal.webp?v=3" alt="" width="1600" height="900" loading="lazy" decoding="async"></div>
       <div class="wrap contact__grid"><h2 id="contact-title" data-i18n="contact.title">Vamos tirar a próxima ideia do papel?</h2><div><p data-i18n="contact.p">Me conte sobre seu negócio, o que você quer construir e em que momento o projeto está.</p><a class="button" data-i18n-href="contact.href" href="https://wa.me/5566999772519?text=Oi%2C%20Miguel.%20Quero%20conversar%20sobre%20um%20projeto." target="_blank" rel="noopener noreferrer" data-i18n-aria="contact.aria" aria-label="Conversar com Miguel pelo WhatsApp, abre em nova aba"><span data-i18n="contact.cta">Conversar pelo WhatsApp</span> <svg aria-hidden="true"><use href="#arrow"/></svg></a></div></div>
     </section>
   </main>
