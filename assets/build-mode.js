@@ -51,7 +51,7 @@
   // [block selector, [[layer selector | ':scope', kind, options]]]
   const SPEC = [
     ['.hero__copy', [['.hero__intro', 'text'], ['h1 > span', 'text', { lead: true, cps: 30 }], ['.hero__description', 'text'], ['.actions .button', 'button']]],
-    ['.hero__visual', [['.hero__shape', 'shape'], ['.hero__word:not(.hero__word--front)', 'text', { cps: 13, twin: '.hero__word--front' }], ['.hero__photo', 'image', { dir: 'up' }], ['.hero__caption', 'text']]],
+    ['.hero__visual', [['.hero__shape', 'shape'], ['.id-dial', 'shape'], ['.hero__word:not(.hero__word--front)', 'text', { cps: 13, twin: '.hero__word--front' }], ['.hero__photo', 'image', { dir: 'up' }], ['.hero__caption', 'text']]],
     ['.hero__foot', [[':scope', 'rule', { edge: 'top' }], ['p', 'text'], ['a', 'text']]],
     ['.work', [[':scope', 'fill']]],
     ['.work .section__head', [['h2', 'text', { lead: true, cps: 34 }], ['p', 'text']]],
@@ -63,7 +63,7 @@
     ['.about__copy', [['h2', 'text', { lead: true, cps: 30 }], ['p', 'text'], ['.text-link', 'text']]],
     ['.process__intro', [['h2', 'text', { lead: true, cps: 34 }], ['p', 'text'], ['.text-link', 'text']]],
     ['.steps li', [[':scope', 'rule', { edge: 'top', marker: true }], ['h3', 'text', { cps: 36 }], ['p', 'text']]],
-    ['.contact', [[':scope', 'fill']]],
+    ['.contact', [[':scope', 'fill'], ['.id-signal', 'image']]],
     ['.contact__grid', [['h2', 'text', { lead: true, cps: 38 }], ['p', 'text'], ['.button', 'button']]],
     ['.footer__grid', [['.brand', 'text'], ['.footer__links a', 'text']]],
     ['.footer__note', [[':scope', 'text']]],
@@ -611,7 +611,9 @@
     // A decorative copy that must show exactly what the layer shows.
     l.twin = opts.twin ? block.el.querySelector(opts.twin) : null;
     if (kind === 'fill') l.fillColor = getComputedStyle(el).backgroundColor;
-    l.onAccent = !!el.closest('.contact');
+    // Dark ink cursor only where the section really is painted in the accent.
+    const accentHost = el.closest('.contact');
+    l.onAccent = !!accentHost && getComputedStyle(accentHost).backgroundColor.replace(/\s/g, '') === 'rgb(184,255,44)';
     layers.push(l);
     return l;
   }
